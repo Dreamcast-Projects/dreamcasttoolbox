@@ -2,7 +2,6 @@
 
 #include <string.h>
 #include <stdlib.h>
-
 #include <stdio.h>
 
 #define PIXEL_SIZE 3 // 24bpp
@@ -26,7 +25,7 @@ typedef struct mr_pal_entry_t {
     unsigned char a;
 } mr_pal_entry_t;
 
-int mr_encode(unsigned char* indexed_data, unsigned char* compressed_data, int idata_size)
+int mr_encode(unsigned char* indexed_data, int idata_size, unsigned char* compressed_data)
 {
     int length = 0;
     int position = 0;
@@ -77,7 +76,7 @@ int mr_encode(unsigned char* indexed_data, unsigned char* compressed_data, int i
     return length;
 }
     
-void mr_decode(unsigned char* compressed_data, unsigned char* indexed_data, int cdata_size, int idata_size)
+void mr_decode(unsigned char* compressed_data, int cdata_size, int idata_size, unsigned char* indexed_data)
 {
     int i;
     int position = 0;
@@ -133,7 +132,7 @@ void mr_decode(unsigned char* compressed_data, unsigned char* indexed_data, int 
 }
 
 // Create MR file from raw data
-int mr_create_from_raw(unsigned char* raw_data, unsigned char* mr_data, int width, int height)
+int mr_create_from_raw(unsigned char* raw_data, int width, int height, unsigned char* mr_data)
 {
     mr_header_t header;
     mr_pal_entry_t palette[MAX_PALETTE_COLORS];
@@ -141,8 +140,8 @@ int mr_create_from_raw(unsigned char* raw_data, unsigned char* mr_data, int widt
     int data_offset;
     int compressed_size;
     
-    unsigned char* indexed_data = (unsigned char*)calloc(width*height, sizeof(unsigned char));
-    unsigned char* compressed_data = (unsigned char*)calloc(width*height, sizeof(unsigned char));
+    unsigned char* indexed_data = calloc(width*height, sizeof(unsigned char));
+    unsigned char* compressed_data = calloc(width*height, sizeof(unsigned char));
     
     int i, found, palette_index, pixel_index;
     int color_count = 0;
@@ -186,7 +185,7 @@ int mr_create_from_raw(unsigned char* raw_data, unsigned char* mr_data, int widt
     }
 
     // Compress indexed_data
-    compressed_size = mr_encode(indexed_data, compressed_data, width*height);
+    compressed_size = mr_encode(indexed_data, width*height, compressed_data);
 
     // Write header
     data_offset = sizeof(mr_header_t) + color_count*4;
@@ -212,13 +211,16 @@ int mr_create_from_raw(unsigned char* raw_data, unsigned char* mr_data, int widt
 }
 
 // Decode MR file and produce raw data
-void mr_decode_to_raw(unsigned char* mr_data, unsigned char* raw_data)
+int mr_decode_to_raw(unsigned char* mr_data, unsigned char* raw_data)
 {
     int i, index;
     mr_header_t header;
     mr_pal_entry_t palette[MAX_PALETTE_COLORS];
     unsigned char* indexed_data;
     unsigned char* compressed_data;
+
+    if(mr_valid_file(mr_data) < 0)
+        return -1;
     
     // Read header
     memcpy(&header, mr_data, sizeof(mr_header_t));
@@ -228,8 +230,8 @@ void mr_decode_to_raw(unsigned char* mr_data, unsigned char* raw_data)
 
     // Uncompress image data
     compressed_data = mr_data+header.data_offset;
-    indexed_data = (unsigned char*)calloc(header.width*header.height, sizeof(unsigned char));
-    mr_decode(compressed_data, indexed_data, header.total_size-header.data_offset, header.width*header.height);
+    indexed_data = calloc(header.width*header.height, sizeof(unsigned char));
+    mr_decode(compressed_data, header.total_size-header.data_offset, header.width*header.height, indexed_data);
 
     for(i=0; i<(header.width*header.height); i++)
     {
@@ -240,18 +242,69 @@ void mr_decode_to_raw(unsigned char* mr_data, unsigned char* raw_data)
     }
 
     free(indexed_data);
+
+    return 0;
 }
 
 // Get width and height of image
-void mr_decode_width_height(unsigned char* mr_data, int* width, int* height)
+int mr_decode_width_height(unsigned char* mr_data, int* width, int* height)
 {
     mr_header_t header;
     memcpy(&header, mr_data, sizeof(mr_header_t));
 
+    if(mr_valid_file(mr_data) < 0)
+        return -1;
+
     *width = header.width;
     *height = header.height;
+
+    return 0;
 }
 
-unsigned int mr_buffer_size(int width, int height) {
+int mr_decode_filesize(unsigned char* mr_data, int* filesize) 
+{
+    mr_header_t header;
+    memcpy(&header, mr_data, sizeof(mr_header_t));
+
+    if(mr_valid_file(mr_data) < 0)
+        return -1;
+
+    *filesize = header.total_size;
+
+    return 0;
+}
+
+int mr_valid_file(unsigned char* mr_data) 
+{
+    int result = 0;
+    mr_header_t header;
+    memcpy(&header, mr_data, sizeof(mr_header_t));
+
+    // Compare first 2 bytes "MR"
+    if(strncmp(header.mr, "MR", 2) != 0) 
+    {
+        printf("MR file header not correct\n");
+        return -1;
+    }
+
+    // Check color count
+    if(header.color_cnt > 128) 
+    {
+        printf("MR file header not correct\n");
+        return -1;
+    }
+
+    // Check total size but give warning instead
+    if(header.total_size > 8192)
+    {
+        printf("MR filesize is greater than 8192 bytes\n");
+        return 1;
+    }
+
+    return result;
+}
+
+unsigned int mr_buffer_size(int width, int height) 
+{
     return sizeof(mr_header_t) + (sizeof(mr_pal_entry_t)*MAX_PALETTE_COLORS) + (width*height);
 }
