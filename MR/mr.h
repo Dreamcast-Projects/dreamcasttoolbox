@@ -1,6 +1,10 @@
 #ifndef MR_H
 #define MR_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Create MR file from raw data
 int mr_create_from_raw(unsigned char* raw_data, int width, int height, unsigned char* mr_data);
 
@@ -18,5 +22,9 @@ int mr_valid_file(unsigned char* mr_data);
 
 // Returns max size of buffer that is needed to fit a mr image given width and height
 unsigned int mr_buffer_size(int width, int height);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

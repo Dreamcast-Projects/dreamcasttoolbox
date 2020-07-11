@@ -1,6 +1,10 @@
 #ifndef IP_H
 #define IP_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define INITIAL_PROGRAM_SIZE 0x8000
 
 typedef struct ip_fields_t {
@@ -24,5 +28,9 @@ int ip_insert_mr(unsigned char* mr_data, unsigned char* ip_data);
 int ip_extract_mr(unsigned char* ip_data, unsigned char* mr_data, int* mr_filesize);
 
 int ip_valid_file(unsigned char* ip_data);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
