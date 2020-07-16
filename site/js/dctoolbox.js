@@ -2,6 +2,40 @@
 //     return filePath.split(/[\\/]/).pop();
 // }
 
+function Utf8ArrayToStr(array) {
+    var out, i, len, c;
+    var char2, char3;
+
+    out = "";
+    len = array.length;
+    i = 0;
+    while(i < len) {
+    c = array[i++];
+    switch(c >> 4)
+    { 
+      case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+        // 0xxxxxxx
+        out += String.fromCharCode(c);
+        break;
+      case 12: case 13:
+        // 110x xxxx   10xx xxxx
+        char2 = array[i++];
+        out += String.fromCharCode(((c & 0x1F) << 6) | (char2 & 0x3F));
+        break;
+      case 14:
+        // 1110 xxxx  10xx xxxx  10xx xxxx
+        char2 = array[i++];
+        char3 = array[i++];
+        out += String.fromCharCode(((c & 0x0F) << 12) |
+                       ((char2 & 0x3F) << 6) |
+                       ((char3 & 0x3F) << 0));
+        break;
+    }
+    }
+
+    return out;
+}
+
 Module['onRuntimeInitialized'] = function() {
     console.log("WASM LOADED");
 }
@@ -98,10 +132,35 @@ function processFile(file) {
         if(Module._ip_valid_file(data_ptr) >= 0) {
             console.log("Is valid IP.BIN");
             const MR_OFFSET = 14368
+            // create a var containing the address of struct
+            let ip_fields_pp = Module._malloc(4);
+            // Create a struct 
+            Module._ip_field_create(ip_fields_pp);
+
+            // Get the actual location of the object
+            let ip_fields_p = Module.getValue(ip_fields_pp, "i32");
+
+            Module._ip_extract_fields(data_ptr, ip_fields_p);
+
+            let buffer = Module._malloc(128);
+            Module._ip_field_get_company_name(ip_fields_p, buffer, 128);
+            document.getElementById("companyname").value = Utf8ArrayToStr(new Uint8Array(Module.HEAP8.buffer, buffer, 128));
+            Module._ip_field_get_software_title(ip_fields_p, buffer, 128);
+            document.getElementById("softwaretitle").value = Utf8ArrayToStr(new Uint8Array(Module.HEAP8.buffer, buffer, 128));
+            Module._ip_field_get_product_version(ip_fields_p, buffer, 128);
+            document.getElementById("productversion").value = Utf8ArrayToStr(new Uint8Array(Module.HEAP8.buffer, buffer, 128));
+            Module._ip_field_get_release_date(ip_fields_p, buffer, 128);
+            document.getElementById("releasedate").value = Utf8ArrayToStr(new Uint8Array(Module.HEAP8.buffer, buffer, 128));
+            Module._ip_field_get_boot_filename(ip_fields_p, buffer, 128);
+            document.getElementById("bootfilename").value = Utf8ArrayToStr(new Uint8Array(Module.HEAP8.buffer, buffer, 128));
             if(Module._mr_valid_file(data_ptr+MR_OFFSET) == 0)
             {
                 drawMRImage(data_ptr+MR_OFFSET);
             }
+
+            Module._ip_field_destroy(ip_fields_p);
+            Module._free(ip_fields_pp);
+            Module._free(buffer);
         }
         else if(Module._mr_valid_file(data_ptr) >= 0) {
             drawMRImage(data_ptr);
@@ -113,3 +172,22 @@ function processFile(file) {
         Module._free(data_ptr);        
     }
 }
+
+// input -> bytes of the file (Uint8Array), name of the file
+// creates and downloads a file with that data
+// function download_binary_file(bynary_data,  file_name){
+//     // creating blob
+//     var mimetype = "application/octet-stream";
+//     var blob = new Blob([bynary_data], {type: mimetype});
+//     var url = window.URL.createObjectURL(blob);
+    
+//     // download 
+//     var element = document.createElement('a');
+//     element.setAttribute('href', url);
+//     element.setAttribute('download', (file_name));
+//     element.style.display = 'none';
+//     document.body.appendChild(element);
+//     element.click();
+//     document.body.removeChild(element);
+//     window.URL.revokeObjectURL(url);
+// }

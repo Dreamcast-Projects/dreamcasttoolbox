@@ -5,6 +5,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 typedef struct ip_meta_t {
     char hardware_id[16];        // Always "SEGA SEGAKATANA "
@@ -36,6 +37,224 @@ int calculate_crc(const unsigned char *buf, int size)
         }
     }
     return n & 0xffff;
+}
+
+void ip_field_create(ip_fields_t** field_data) 
+{
+    ip_fields_t* new_struct = malloc(sizeof(ip_fields_t));
+    
+    const char* c_name = "INDIE DEV";
+    memset(new_struct->company_name, ' ', sizeof(new_struct->company_name));
+    memcpy(new_struct->company_name, c_name, strlen(c_name));
+    new_struct->company_name[sizeof(new_struct->company_name)-1] = '\0';
+
+    const char* s_title = "MY INCREDIBLE GAME";
+    memset(new_struct->software_title, ' ', sizeof(new_struct->software_title));
+    memcpy(new_struct->software_title, s_title, strlen(s_title));
+    new_struct->software_title[sizeof(new_struct->software_title)-1] = '\0';
+
+    const char* p_version = "V1.000";
+    memset(new_struct->product_version, ' ', sizeof(new_struct->product_version));
+    memcpy(new_struct->product_version, p_version, strlen(p_version));
+    new_struct->product_version[sizeof(new_struct->product_version)-1] = '\0';
+
+    const char* r_date = "20201127";
+    memset(new_struct->release_date, ' ', sizeof(new_struct->release_date));
+    memcpy(new_struct->release_date, r_date, strlen(r_date));
+    new_struct->release_date[sizeof(new_struct->release_date)-1] = '\0';
+
+    const char* b_filename = "1ST_READ.BIN";
+    memset(new_struct->boot_filename, ' ', sizeof(new_struct->boot_filename));
+    memcpy(new_struct->boot_filename, b_filename, strlen(b_filename));
+    new_struct->boot_filename[sizeof(new_struct->boot_filename)-1] = '\0';
+
+    *field_data  = new_struct;
+}
+
+void ip_field_destroy(ip_fields_t* field_data) 
+{
+    if(field_data != NULL)
+        free(field_data);
+}
+
+int ip_field_get_company_name(const ip_fields_t* field_data, char* value, int value_length) 
+{
+    if(field_data == NULL || value == NULL)
+        return -1;
+
+    int val_length = value_length-1;
+    if(val_length > strlen(field_data->company_name))
+    {
+        val_length = strlen(field_data->company_name);
+    }
+
+    memset(value, ' ', value_length);
+    memcpy(value, field_data->company_name, val_length);
+    value[value_length-1] = '\0';
+
+    return 0;
+}
+
+int ip_field_set_company_name(ip_fields_t* field_data, const char* value)
+{
+    if(field_data == NULL || value == NULL)
+        return -1;
+
+    int val_length = strlen(value);
+    if(val_length > sizeof(field_data->company_name))
+    {
+        val_length = sizeof(field_data->company_name);
+    }
+
+    memset(field_data->company_name, ' ', sizeof(field_data->company_name));
+    memcpy(field_data->company_name, value, val_length);
+    field_data->company_name[sizeof(field_data->company_name)-1] = '\0';
+
+    return 0;
+}
+
+int ip_field_get_software_title(const ip_fields_t* field_data, char* value, int value_length)
+{
+    if(field_data == NULL || value == NULL)
+        return -1;
+
+    int val_length = value_length-1;
+    if(val_length > strlen(field_data->software_title))
+    {
+        val_length = strlen(field_data->software_title);
+    }
+
+    memset(value, ' ', value_length);
+    memcpy(value, field_data->software_title, val_length);
+    value[value_length-1] = '\0';
+
+    return 0;
+}
+
+int ip_field_set_software_title(ip_fields_t* field_data, const char* value)
+{
+    if(field_data == NULL || value == NULL)
+        return -1;
+
+    int val_length = strlen(value);
+    if(val_length > sizeof(field_data->software_title))
+    {
+        val_length = sizeof(field_data->software_title);
+    }
+
+    memset(field_data->software_title, ' ', sizeof(field_data->software_title));
+    memcpy(field_data->software_title, value, val_length);
+    field_data->software_title[sizeof(field_data->software_title)-1] = '\0';
+
+    return 0;
+}
+
+int ip_field_get_product_version(const ip_fields_t* field_data, char* value, int value_length)
+{
+    if(field_data == NULL || value == NULL)
+        return -1;
+
+    int val_length = value_length-1;
+    if(val_length > strlen(field_data->product_version))
+    {
+        val_length = strlen(field_data->product_version);
+    }
+
+    memset(value, ' ', value_length);
+    memcpy(value, field_data->product_version, val_length);
+    value[value_length-1] = '\0';
+
+    return 0;
+}
+
+int ip_field_set_product_version(ip_fields_t* field_data, const char* value)
+{
+    if(field_data == NULL || value == NULL)
+        return -1;
+
+    int val_length = strlen(value);
+    if(val_length > sizeof(field_data->product_version))
+    {
+        val_length = sizeof(field_data->product_version);
+    }
+
+    memset(field_data->product_version, ' ', sizeof(field_data->product_version));
+    memcpy(field_data->product_version, value, val_length);
+    field_data->product_version[sizeof(field_data->product_version)-1] = '\0';
+
+    return 0;
+}
+
+int ip_field_get_release_date(const ip_fields_t* field_data, char* value, int value_length)
+{
+    if(field_data == NULL || value == NULL)
+        return -1;
+
+    int val_length = value_length-1;
+    if(val_length > strlen(field_data->release_date))
+    {
+        val_length = strlen(field_data->release_date);
+    }
+
+    memset(value, ' ', value_length);
+    memcpy(value, field_data->release_date, val_length);
+    value[value_length-1] = '\0';
+
+    return 0;
+}
+
+int ip_field_set_release_date(ip_fields_t* field_data, const char* value)
+{
+    if(field_data == NULL || value == NULL)
+        return -1;
+
+    int val_length = strlen(value);
+    if(val_length > sizeof(field_data->release_date))
+    {
+        val_length = sizeof(field_data->release_date);
+    }
+
+    memset(field_data->release_date, ' ', sizeof(field_data->release_date));
+    memcpy(field_data->release_date, value, val_length);
+    field_data->release_date[sizeof(field_data->release_date)-1] = '\0';
+
+    return 0;
+}
+
+int ip_field_get_boot_filename(const ip_fields_t* field_data, char* value, int value_length)
+{
+    if(field_data == NULL || value == NULL)
+        return -1;
+
+    int val_length = value_length-1;
+    if(val_length > strlen(field_data->boot_filename))
+    {
+        val_length = strlen(field_data->boot_filename);
+    }
+
+    memset(value, ' ', value_length);
+    memcpy(value, field_data->boot_filename, val_length);
+    value[value_length-1] = '\0';
+
+    return 0;
+}
+
+int ip_field_set_boot_filename(ip_fields_t* field_data, const char* value)
+{
+    if(field_data == NULL || value == NULL)
+        return -1;
+
+    int val_length = strlen(value);
+    if(val_length > sizeof(field_data->boot_filename))
+    {
+        val_length = sizeof(field_data->boot_filename);
+    }
+
+    memset(field_data->boot_filename, ' ', sizeof(field_data->boot_filename));
+    memcpy(field_data->boot_filename, value, val_length);
+    field_data->boot_filename[sizeof(field_data->boot_filename)-1] = '\0';
+
+    return 0;
 }
 
 // Create MR file from raw data

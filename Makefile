@@ -2,7 +2,7 @@ CC = gcc
 AR = ar
 CFLAGS = -g -Wall -Wfatal-errors -Wpedantic -I.
 
-TARGET = dctoolbox.so
+TARGET = dctoolbox
 
 all: $(TARGET)
 
@@ -10,8 +10,9 @@ INCS = -I./IP         \
        -I./MR         \
 	   -I./Twiddle    \
 
-SRCS = IP/ip.c                \
-       MR/mr.c                \
+SRCS = main.c                 \
+	   IP/ip.c                \
+	   MR/mr.c                \
 	   Twiddle/twiddler.c      
 
 OBJS = $(SRCS:.c=.o)
@@ -20,7 +21,10 @@ OBJS = $(SRCS:.c=.o)
 	$(CC) $(CFLAGS) $(INCS) -c $< -o $@
 
 $(TARGET): $(OBJS)
-	$(AR) -rcs $(TARGET) $(OBJS)
+	$(CC) -o $(TARGET) $(OBJS) 
+
+library: $(OBJS)
+	$(CC) -rcs $(TARGET) $(OBJS)
 
 EXPFUNCS = "['_mr_create_from_raw', \
 			'_mr_decode_to_raw', \
@@ -28,6 +32,18 @@ EXPFUNCS = "['_mr_create_from_raw', \
 			'_mr_decode_filesize', \
 			'_mr_valid_file', \
 			'_mr_buffer_size', \
+			'_ip_field_create', \
+			'_ip_field_destroy', \
+			'_ip_field_get_company_name', \
+			'_ip_field_set_company_name', \
+			'_ip_field_get_software_title', \
+			'_ip_field_set_software_title', \
+			'_ip_field_get_product_version', \
+			'_ip_field_set_product_version', \
+			'_ip_field_get_release_date', \
+			'_ip_field_set_release_date', \
+			'_ip_field_get_boot_filename', \
+			'_ip_field_set_boot_filename', \
 			'_ip_create_from_fields', \
 			'_ip_extract_fields', \
 			'_ip_insert_mr', \

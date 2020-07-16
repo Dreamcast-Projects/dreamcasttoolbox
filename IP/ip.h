@@ -15,6 +15,30 @@ typedef struct ip_fields_t {
     char boot_filename[17];      // "1ST_READ.BIN"
 } ip_fields_t;
 
+void ip_field_create(ip_fields_t** field_data);
+
+void ip_field_destroy(ip_fields_t* field_data);
+
+int ip_field_get_company_name(const ip_fields_t* field_data, char* value, int value_length);
+
+int ip_field_set_company_name(ip_fields_t* field_data, const char* value);
+
+int ip_field_get_software_title(const ip_fields_t* field_data, char* value, int value_length);
+
+int ip_field_set_software_title(ip_fields_t* field_data, const char* value);
+
+int ip_field_get_product_version(const ip_fields_t* field_data, char* value, int value_length);
+
+int ip_field_set_product_version(ip_fields_t* field_data, const char* value);
+
+int ip_field_get_release_date(const ip_fields_t* field_data, char* value, int value_length);
+
+int ip_field_set_release_date(ip_fields_t* field_data, const char* value);
+
+int ip_field_get_boot_filename(const ip_fields_t* field_data, char* value, int value_length);
+
+int ip_field_set_boot_filename(ip_fields_t* field_data, const char* value);
+
 // Create MR file from raw data
 int ip_create_from_fields(ip_fields_t* field_data, unsigned char* ip_data);
 
